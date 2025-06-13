@@ -3,7 +3,7 @@ import sys
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, send_from_directory, jsonify,request
 from flask_cors import CORS
 from src.models.models import db, Product, Category, Order, OrderItem, User
 from src.routes.user import user_bp
@@ -13,7 +13,10 @@ app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'sta
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 
 # Enable CORS for all routes
-CORS(app)
+CORS(app,resources={r"/api/*": {"origins": [
+    "https://lifestyle-store-frontend-production.up.railway.app",
+    "http://localhost:5173"
+]}})
 
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
