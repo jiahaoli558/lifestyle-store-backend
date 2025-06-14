@@ -24,7 +24,6 @@ CORS(app,resources={r"/api/*": {"origins": [
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy() # 实例化db，但暂时不绑定app
 migrate = Migrate(app, db)
 bcrypt = Bcrypt(app) # 初始化Bcrypt
 
