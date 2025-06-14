@@ -8,7 +8,9 @@ from flask_cors import CORS
 from src.models.models import db, Product, Category, Order, OrderItem, User
 from src.routes.user import user_bp
 from src.routes.product import product_bp
+from flask_bcrypt import Bcrypt # 新增这一行
 
+bcrypt = Bcrypt(app)
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 
@@ -21,7 +23,11 @@ CORS(app,resources={r"/api/*": {"origins": [
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db.init_app(app)
+db = SQLAlchemy() # 实例化db，但暂时不绑定app
+migrate = Migrate(app, db)
+bcrypt = Bcrypt(app) # 初始化Bcrypt
+
+db.init_app(app) # 将db绑定到app
 
 # Register blueprints
 app.register_blueprint(user_bp, url_prefix='/api')
