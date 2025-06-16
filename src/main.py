@@ -17,7 +17,7 @@ app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 
 # Enable CORS for all routes
 CORS(app,resources={r"/api/*": {"origins": [
-    "https://lifestyle-store-frontend-production.up.railway.app",
+    "https://lifestyle-store-frontend.onrender.com",
     "http://localhost:5173"
 ]}})
 
