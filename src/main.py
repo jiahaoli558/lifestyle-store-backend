@@ -89,8 +89,8 @@ def init_data():
                 Product(
                     name='北欧风格陶瓷餐具套装',
                     description='简约北欧风格，高品质陶瓷材质，包含4人份餐具',
-                    price=299,
-                    original_price=399,
+                    price=399,
+                    original_price=299,
                     image='https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop',
                     category='kitchen',
                     rating=4.8,
