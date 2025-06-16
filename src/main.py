@@ -7,12 +7,14 @@ from flask import Flask, send_from_directory, jsonify,request
 from flask_cors import CORS
 from src.models.models import db, Product, Category, Order, OrderItem, User
 from src.routes.user import user_bp
-from src.routes.product import product_bp
+from src/routes.product import product_bp
+from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt # 新增这一行
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'your-strong-fallback-secret')
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 
 # Enable CORS for all routes
@@ -24,6 +26,8 @@ CORS(app,resources={r"/api/*": {"origins": [
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+jwt = JWTManager(app)
 migrate = Migrate(app, db)
 bcrypt = Bcrypt(app) # 初始化Bcrypt
 
