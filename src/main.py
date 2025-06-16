@@ -7,7 +7,7 @@ from flask import Flask, send_from_directory, jsonify,request
 from flask_cors import CORS
 from src.models.models import db, Product, Category, Order, OrderItem, User
 from src.routes.user import user_bp
-from src/routes.product import product_bp
+from src.routes.product import product_bp
 from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt # 新增这一行
 from flask_sqlalchemy import SQLAlchemy
