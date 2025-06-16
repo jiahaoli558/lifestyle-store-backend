@@ -18,10 +18,10 @@ app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'your-strong-fal
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 
 # Enable CORS for all routes
-CORS(app,resources={r"/api/*": {"origins": [
+CORS(app, resources={r"/api/*": {"origins": [
     "https://lifestyle-store-frontend.onrender.com",
     "http://localhost:5173"
-]}})
+]}}, supports_credentials=True, expose_headers=['Authorization'])
 
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
