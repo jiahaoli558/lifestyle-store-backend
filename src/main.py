@@ -26,7 +26,11 @@ CORS(app,resources={r"/api/*": {"origins": [
 ]}})
 
 # Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
+DATABASE_DIR = os.path.join(os.path.dirname(__file__), 'database')
+os.makedirs(DATABASE_DIR, exist_ok=True)
+DB_PATH = os.path.join(DATABASE_DIR, 'app.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_PATH}"
+print(f"--- Using database at: {os.path.abspath(DB_PATH)} ---") # Log absolute path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 migrate = Migrate(app, db)
 bcrypt = Bcrypt(app) # 初始化Bcrypt
