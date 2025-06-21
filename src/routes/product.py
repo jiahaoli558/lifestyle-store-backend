@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_cors import cross_origin
 from src.models.models import db, Product, Category, Order, OrderItem, User
 
@@ -48,6 +48,7 @@ def get_products():
             'current_page': page
         })
     except Exception as e:
+        current_app.logger.exception("--- ERROR IN GET_PRODUCTS ---")
         return jsonify({'error': str(e)}), 500
 
 @product_bp.route('/products/<int:product_id>', methods=['GET'])
@@ -196,4 +197,5 @@ def delete_product(product_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
 
