@@ -13,3 +13,4 @@ Werkzeug==3.1.3
 Flask-Bcrypt==1.0.1 
 flask-migrate
 stripe
+gunicorn

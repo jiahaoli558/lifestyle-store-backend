@@ -1,2 +1,3 @@
-web: python src/main.py
+web: gunicorn src.main:app --log-level debug
+
 

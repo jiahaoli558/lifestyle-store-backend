@@ -5,45 +5,79 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from flask import Flask, send_from_directory, jsonify,request
 from flask_cors import CORS
-from src.models.models import db, Product, Category, Order, OrderItem, User, UserProfile, Address, Wishlist, PaymentMethod, Notification, Payment, Refund, Shipment, ShipmentTracking, Role, UserRole
+from src.models.models import db, Product, Category, Order, OrderItem, User, UserProfile, Address, Wishlist, PaymentMethod, Notification, Payment, Refund, Shipment, ShipmentTracking, Role, UserRole # Bcrypt is imported from here via models
 from src.routes.user import user_bp
 from src.routes.product import product_bp
 from src.routes.profile import profile_bp
 from src.routes.payment import payment_bp
 from src.routes.shipping import shipping_bp
 from src.routes.admin import admin_bp
-from flask_bcrypt import Bcrypt # 新增这一行
+# from flask_bcrypt import Bcrypt # Removed as bcrypt is handled in models.models
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
-app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
-app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
+print("--- Starting Flask App Initialization ---")
 
-# Enable CORS for all routes
-CORS(app,resources={r"/api/*": {"origins": [
-    "https://lifestyle-store-frontend.onrender.com",
-    "http://localhost:5173"
-]}})
+# Instantiate extensions that will be initialized later with app context
+migrate = Migrate()
 
-# Database configuration
-DATABASE_DIR = os.path.join(os.path.dirname(__file__), 'database')
-os.makedirs(DATABASE_DIR, exist_ok=True)
-DB_PATH = os.path.join(DATABASE_DIR, 'app.db')
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_PATH}"
-print(f"--- Using database at: {os.path.abspath(DB_PATH)} ---") # Log absolute path
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-migrate = Migrate(app, db)
-bcrypt = Bcrypt(app) # 初始化Bcrypt
+try:
+    print("--- Creating Flask app instance ---")
+    app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
+    app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
+    print("--- Flask app instance created and basic config set ---")
 
-db.init_app(app) # 将db绑定到app
+    print("--- Initializing CORS ---")
+    CORS(app,resources={r"/api/*": {"origins": [
+        "https://lifestyle-store-frontend.onrender.com",
+        "http://localhost:5173"
+    ]}})
+    print("--- CORS initialized ---")
 
-# Register blueprints
-app.register_blueprint(user_bp, url_prefix='/api')
-app.register_blueprint(product_bp, url_prefix='/api')
-app.register_blueprint(profile_bp, url_prefix='/api')
-app.register_blueprint(payment_bp, url_prefix='/api/payment')
-app.register_blueprint(shipping_bp, url_prefix='/api/shipping')
-app.register_blueprint(admin_bp, url_prefix='/api/admin')
+    print("--- Configuring Database ---")
+    DATABASE_DIR = os.path.join(os.path.dirname(__file__), 'database')
+    os.makedirs(DATABASE_DIR, exist_ok=True)
+    DB_PATH = os.path.join(DATABASE_DIR, 'app.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_PATH}"
+    print(f"--- Using database at: {os.path.abspath(DB_PATH)} ---")
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    print("--- Database configured ---")
+
+    print("--- Initializing Flask extensions (SQLAlchemy, Migrate) ---")
+    db.init_app(app) # db instance from src.models.models
+    print("--- SQLAlchemy (db) initialized ---")
+    
+    migrate.init_app(app, db) # migrate instance created above
+    print("--- Migrate initialized ---")
+    
+    # Bcrypt is already initialized in src.models.models and available via 'db' or directly if User model uses models.bcrypt
+    # No need for bcrypt.init_app(app) here if models.bcrypt is used by User methods and flask_bcrypt auto-registers with app if bcrypt = Bcrypt() is global in models
+    # The User model in models.py uses the bcrypt instance defined in models.py.
+    # If that bcrypt instance needs the app context, it should be initialized with app,
+    # but Flask-Bcrypt typically doesn't require explicit .init_app if instantiated globally.
+    # The previous `bcrypt = Bcrypt(app)` was a separate instance. We are relying on `models.bcrypt`.
+
+    print("--- Registering blueprints ---")
+    app.register_blueprint(user_bp, url_prefix='/api')
+    app.register_blueprint(product_bp, url_prefix='/api')
+    app.register_blueprint(profile_bp, url_prefix='/api')
+    app.register_blueprint(payment_bp, url_prefix='/api/payment')
+    app.register_blueprint(shipping_bp, url_prefix='/api/shipping')
+    app.register_blueprint(admin_bp, url_prefix='/api/admin')
+    print("--- Blueprints registered ---")
+
+    print("--- Attempting to create database tables ---")
+    with app.app_context():
+        db.create_all()
+    print("--- Database tables checked/created (db.create_all) ---")
+    print("--- Flask App Initialization Completed Successfully ---")
+
+except Exception as e:
+    print(f"!!! CRITICAL ERROR DURING APP INITIALIZATION: {str(e)} !!!", flush=True)
+    # Re-raising will stop the app, which is desired if initialization fails.
+    # In a production environment, you might have more sophisticated error handling.
+    raise e
+
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
@@ -204,8 +238,14 @@ def init_data():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
+# Ensure tables are created when the app starts (this is now inside the try-except block)
+# with app.app_context():
+# db.create_all()
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
+    # db.create_all() is now handled by the main try-except block or should be
+    # called explicitly if not using a dev server that triggers before_request
+    # For running locally with `python src/main.py`, it's covered by the init block.
+    # If the app failed to initialize, the 'raise e' would have stopped execution.
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
