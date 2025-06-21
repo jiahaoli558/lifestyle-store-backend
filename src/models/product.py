@@ -1,5 +1,4 @@
-import traceback
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_cors import cross_origin
 from src.models.models import db, Product, Category, Order, OrderItem, User
 
@@ -49,12 +48,7 @@ def get_products():
             'current_page': page
         })
     except Exception as e:
-        print(f"--- ERROR IN GET_PRODUCTS ---")
-        print(f"Exception type: {type(e).__name__}")
-        print(f"Exception message: {str(e)}")
-        print("Traceback:")
-        traceback.print_exc() # This prints the full traceback to stderr
-        print("--- END ERROR IN GET_PRODUCTS ---")
+        current_app.logger.exception("--- ERROR IN GET_PRODUCTS ---")
         return jsonify({'error': str(e)}), 500
 
 @product_bp.route('/products/<int:product_id>', methods=['GET'])
