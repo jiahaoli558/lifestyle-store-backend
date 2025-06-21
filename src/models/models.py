@@ -220,13 +220,16 @@ class Product(db.Model):
     image = db.Column(db.String(500))
     category = db.Column(db.String(100))
     rating = db.Column(db.Float, default=0.0)
-    reviews = db.Column(db.Integer, default=0)
+    reviews = db.Column(db.Integer, default=0) # This field seems to be a count of reviews.
     is_new = db.Column(db.Boolean, default=False)
     discount = db.Column(db.Integer, default=0)
     stock = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
     
+    reviews = db.relationship('Review', backref='product', lazy='dynamic')
+
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -237,7 +240,7 @@ class Product(db.Model):
             'image': self.image,
             'category': self.category,
             'rating': self.rating,
-            'reviews': self.reviews,
+            'reviews': self.reviews, # This is the count
             'isNew': self.is_new,
             'discount': self.discount,
             'stock': self.stock
@@ -426,4 +429,28 @@ class ShipmentTracking(db.Model):
             'description': self.description,
             'timestamp': self.timestamp.isoformat() if self.timestamp else None,
             'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class Review(db.Model):
+    __tablename__ = 'reviews'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False) # Assuming integer rating (e.g., 1 to 5)
+    comment = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    # The 'user' backref is already created by the relationship in the User model:
+    #   reviews = db.relationship('Review', backref='user', lazy=True, cascade='all, delete-orphan')
+    # A 'product' backref will be created if a relationship is added to the Product model.
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'product_id': self.product_id,
+            'rating': self.rating,
+            'comment': self.comment,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
         }
