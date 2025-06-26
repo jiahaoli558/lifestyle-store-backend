@@ -15,6 +15,9 @@ from src.routes.admin import admin_bp
 # from flask_bcrypt import Bcrypt # Removed as bcrypt is handled in models.models
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from src.routes.order import order_bp
+app.register_blueprint(order_bp, url_prefix='/api')
+
 
 print("--- Starting Flask App Initialization ---")
 
