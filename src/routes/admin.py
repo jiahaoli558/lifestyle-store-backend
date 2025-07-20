@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_cors import cross_origin
-from src.models.models import db, User, Product, Order, OrderItem, Category, UserRole, Role, Notification
+from src.models.models_fixed import db, User, Product, Order, OrderItem, Category, UserRole, Role, Notification
 from datetime import datetime, timedelta
 from sqlalchemy import func, desc
 import json
@@ -473,6 +473,155 @@ def create_admin_user():
             'message': 'Admin user created successfully',
             'user': admin_user.to_dict()
         }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+
+# 用户管理API
+@admin_bp.route('/users', methods=['GET'])
+@cross_origin()
+@admin_required
+def get_users():
+    """获取所有用户"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        search = request.args.get('search', '')
+        status = request.args.get('status', '')
+        
+        query = User.query
+        
+        if search:
+            query = query.filter(
+                db.or_(
+                    User.username.contains(search),
+                    User.email.contains(search)
+                )
+            )
+        
+        if status:
+            # 如果User模型有status字段
+            if hasattr(User, 'status'):
+                query = query.filter(User.status == status)
+        
+        users = query.order_by(desc(User.created_at)).paginate(page=page, per_page=per_page, error_out=False)
+        
+        users_data = []
+        for user in users.items:
+            # 计算用户统计数据
+            user_orders = Order.query.filter_by(user_id=user.id).all()
+            total_spent = sum(float(order.total_amount) for order in user_orders)
+            order_count = len(user_orders)
+            
+            user_data = {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'status': getattr(user, 'status', 'active'),
+                'created_at': user.created_at.isoformat() if user.created_at else None,
+                'updated_at': user.updated_at.isoformat() if user.updated_at else None,
+                'last_login': getattr(user, 'last_login', None),
+                'order_count': order_count,
+                'total_spent': total_spent,
+                'avg_order_value': total_spent / order_count if order_count > 0 else 0
+            }
+            users_data.append(user_data)
+        
+        return jsonify({
+            'users': users_data,
+            'total': users.total,
+            'pages': users.pages,
+            'current_page': page
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/users/<int:user_id>', methods=['GET'])
+@cross_origin()
+@admin_required
+def get_user_detail(user_id):
+    """获取用户详情"""
+    try:
+        user = User.query.get_or_404(user_id)
+        
+        # 获取用户订单
+        orders = Order.query.filter_by(user_id=user_id).order_by(desc(Order.created_at)).limit(5).all()
+        recent_orders = []
+        
+        for order in orders:
+            order_data = {
+                'id': order.id,
+                'total_amount': float(order.total_amount),
+                'status': order.status,
+                'created_at': order.created_at.isoformat() if order.created_at else None
+            }
+            recent_orders.append(order_data)
+        
+        # 获取用户地址
+        addresses = []
+        if hasattr(user, 'addresses'):
+            for addr in user.addresses:
+                address_data = {
+                    'name': addr.name,
+                    'phone': addr.phone,
+                    'province': addr.province,
+                    'city': addr.city,
+                    'district': addr.district,
+                    'address_line': addr.address_line,
+                    'is_default': addr.is_default
+                }
+                addresses.append(address_data)
+        
+        # 计算统计数据
+        all_orders = Order.query.filter_by(user_id=user_id).all()
+        total_spent = sum(float(order.total_amount) for order in all_orders)
+        order_count = len(all_orders)
+        
+        user_data = {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'status': getattr(user, 'status', 'active'),
+            'created_at': user.created_at.isoformat() if user.created_at else None,
+            'updated_at': user.updated_at.isoformat() if user.updated_at else None,
+            'last_login': getattr(user, 'last_login', None),
+            'order_count': order_count,
+            'total_spent': total_spent,
+            'avg_order_value': total_spent / order_count if order_count > 0 else 0,
+            'recent_orders': recent_orders,
+            'addresses': addresses
+        }
+        
+        return jsonify(user_data)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/users/<int:user_id>/status', methods=['PUT'])
+@cross_origin()
+@admin_required
+def update_user_status(user_id):
+    """更新用户状态"""
+    try:
+        data = request.get_json()
+        new_status = data.get('status')
+        
+        if not new_status:
+            return jsonify({'error': 'Status is required'}), 400
+        
+        user = User.query.get_or_404(user_id)
+        
+        # 如果User模型有status字段
+        if hasattr(user, 'status'):
+            user.status = new_status
+            user.updated_at = datetime.utcnow()
+            db.session.commit()
+        
+        return jsonify({'message': 'User status updated successfully'})
         
     except Exception as e:
         db.session.rollback()

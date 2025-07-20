@@ -3,6 +3,7 @@ from datetime import datetime
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
+from decimal import Decimal
 
 db = SQLAlchemy()
 
@@ -24,7 +25,7 @@ class User(db.Model):
     
     # 会员信息
     member_level = db.Column(db.String(20), default='bronze')  # bronze, silver, gold, platinum
-    total_spent = db.Column(db.Decimal(10, 2), default=0)
+    total_spent = db.Column(db.Numeric(10, 2), default=0)
     
     # 时间字段
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -93,8 +94,8 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    price = db.Column(db.Decimal(10, 2), nullable=False)
-    original_price = db.Column(db.Decimal(10, 2))  # 原价，用于显示折扣
+    price = db.Column(db.Numeric(10, 2), nullable=False)
+    original_price = db.Column(db.Numeric(10, 2))  # 原价，用于显示折扣
     stock = db.Column(db.Integer, default=0)
     sku = db.Column(db.String(50), unique=True)  # 商品编码
     
@@ -108,7 +109,7 @@ class Product(db.Model):
     
     # 物理属性
     dimensions = db.Column(db.String(100))  # 尺寸：长x宽x高
-    weight = db.Column(db.Decimal(8, 2))    # 重量（克）
+    weight = db.Column(db.Numeric(8, 2))    # 重量（克）
     capacity = db.Column(db.String(50))     # 容量（适用于茶具、餐具）
     
     # 商品状态
@@ -119,7 +120,7 @@ class Product(db.Model):
     # 销售数据
     sales_count = db.Column(db.Integer, default=0)      # 销量
     view_count = db.Column(db.Integer, default=0)       # 浏览量
-    rating_avg = db.Column(db.Decimal(3, 2), default=0) # 平均评分
+    rating_avg = db.Column(db.Numeric(3, 2), default=0) # 平均评分
     review_count = db.Column(db.Integer, default=0)     # 评价数量
     
     # 关系
@@ -195,10 +196,10 @@ class Order(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
     # 金额信息
-    subtotal = db.Column(db.Decimal(10, 2), nullable=False)      # 商品小计
-    shipping_fee = db.Column(db.Decimal(10, 2), default=0)       # 运费
-    discount_amount = db.Column(db.Decimal(10, 2), default=0)    # 优惠金额
-    total_amount = db.Column(db.Decimal(10, 2), nullable=False)  # 总金额
+    subtotal = db.Column(db.Numeric(10, 2), nullable=False)      # 商品小计
+    shipping_fee = db.Column(db.Numeric(10, 2), default=0)       # 运费
+    discount_amount = db.Column(db.Numeric(10, 2), default=0)    # 优惠金额
+    total_amount = db.Column(db.Numeric(10, 2), nullable=False)  # 总金额
     
     # 订单状态
     status = db.Column(db.String(20), default='pending')  # pending, paid, shipped, delivered, cancelled, refunded
@@ -275,8 +276,8 @@ class OrderItem(db.Model):
     product_image = db.Column(db.String(500))
     
     quantity = db.Column(db.Integer, nullable=False)
-    unit_price = db.Column(db.Decimal(10, 2), nullable=False)
-    total_price = db.Column(db.Decimal(10, 2), nullable=False)
+    unit_price = db.Column(db.Numeric(10, 2), nullable=False)
+    total_price = db.Column(db.Numeric(10, 2), nullable=False)
     
     def to_dict(self):
         return {

@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_cors import cross_origin
-from src.models.models import db, Product, Category, Order, OrderItem, User
+from src.models.models_fixed import db, Product, Category, Order, OrderItem, User
 
 product_bp = Blueprint('product', __name__)
 

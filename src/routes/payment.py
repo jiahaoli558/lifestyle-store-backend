@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_cors import cross_origin
 import stripe
 import os
-from src.models.models import db, Order, OrderItem, Payment, PaymentMethod, User, Product
+from src.models.models_fixed import db, Order, OrderItem, Payment, PaymentMethod, User, Product
 from datetime import datetime
 
 payment_bp = Blueprint('payment', __name__)
@@ -282,7 +282,7 @@ def create_refund():
         stripe_refund = stripe.Refund.create(**refund_data)
         
         # 保存退款记录
-        from src.models.models import Refund
+        from src.models.models_fixed import Refund
         refund = Refund(
             payment_id=payment_id,
             amount=amount or payment.amount,

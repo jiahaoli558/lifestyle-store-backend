@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_cors import cross_origin
-from src.models.models import db, Order, Shipment, ShipmentTracking, Notification, User
+from src.models.models_fixed import db, Order, Shipment, ShipmentTracking, Notification, User
 from datetime import datetime, timedelta
 import random
 import string

@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_cors import cross_origin
-from src.models.models import db, User, UserProfile, Address, Wishlist, PaymentMethod, Notification
+from src.models.models_fixed import db, User, UserProfile, Address, Wishlist, PaymentMethod, Notification
 from datetime import datetime
 
 profile_bp = Blueprint('profile', __name__)

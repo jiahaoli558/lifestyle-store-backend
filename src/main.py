@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from flask import Flask, send_from_directory, jsonify,request
 from flask_cors import CORS
-from src.models.models import db, Product, Category, Order, OrderItem, User, UserProfile, Address, Wishlist, PaymentMethod, Notification, Payment, Refund, Shipment, ShipmentTracking, Role, UserRole # Bcrypt is imported from here via models
+from src.models.models_fixed import db, Product, Category, Order, OrderItem, User, Address, Wishlist, Review, Admin
 from src.routes.user import user_bp
 from src.routes.product import product_bp
 from src.routes.profile import profile_bp
